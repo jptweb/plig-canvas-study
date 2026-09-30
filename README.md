@@ -61,6 +61,18 @@ Everything is logged in memory with a millisecond timestamp: load, tab switches,
 - `<aside id="assist" hidden>` at the bottom of the work column (chat panel for Group 2, feedback panel for Group 3).
 - `data-section` on every tutorial section and every stage, and the `.is-highlighted` class, so Group 3 can point at "the part of the tutorial to re-read."
 
+## Status and next steps (2026-09-30)
+
+Built: the control-group page for both variants, checkpoints, goal thumbnails, session log, self-tests. Shared with the team on 2026-09-30.
+
+Decided by the team, not built yet:
+
+1. **Collapse the task to one prompt.** Show one picture of the finished scene plus a full written description; hide the stage list. Keep `tasks.js` checkers running silently (timing, Group 3 signal). Plan: a display mode (`?mode=prompt` or a constant), the description is the stage texts joined, the picture is the last stage's goal thumbnail at full size.
+2. **Trim the tutorial.** Drop one element; the vault's `tutorial-text.md` is edited first, then ported here, and the quiz and reference tab follow.
+3. Group 2 (chat panel) and Group 3 (targeted feedback that highlights a tutorial section) are not started. Hooks: `<aside id="assist">`, `data-section` on sections and stage cards, `.is-highlighted`, per-stage checker results carry the section id.
+
+Removed on 2026-09-30: the "Try it" buttons (students type the examples themselves).
+
 ## Source of truth
 
 The study design, task spec (stages, checkpoints, quiz draft), and tutorial text master live in JP's vault: `RIT-Hub-Vault/04-Projects/research/plig-ai-tutoring/` (`task-spec.md`, `tutorial-text.md`). Edit there first, then port here.
