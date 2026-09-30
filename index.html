@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Canvas Task</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+</head>
+<body>
+
+<header class="top">
+  <h1>Canvas Task <span id="variant-name" class="muted"></span></h1>
+  <div class="top-actions">
+    <button id="btn-log" class="ghost" title="Download the session log as JSON">Download session log</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ===================== LESSON (left) ===================== -->
+  <section class="lesson" aria-label="Lesson">
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="tutorial" role="tab">Tutorial</button>
+      <button class="tab" data-tab="reference" role="tab">Reference</button>
+    </nav>
+
+    <div id="tab-tutorial" class="tab-panel active">
+      <article class="tutorial">
+        <h2 class="doc-title">Drawing with the Canvas</h2>
+        <p class="lede">A short read before the task. Everything here gets used in the task, and this page stays open while you work, so you can come back to any section.</p>
+
+        <section id="sec-editor" data-section="sec-editor">
+          <h3>0. Try the editor</h3>
+          <p>The editor on the right runs JavaScript. Type or paste these three lines under the starter code and press <strong>Run</strong>.</p>
+          <div class="example">
+<pre><code>ctx.fillStyle = "steelblue";
+ctx.fillRect(20, 20, 100, 60);
+ctx.fillRect(150, 100, 60, 60);</code></pre>
+            <button class="try">Try it</button>
+          </div>
+          <p>You should see two blue rectangles. If you get an error instead, check for a missing quote or parenthesis. The error panel under the canvas tells you the line number. Delete the three lines when you're done, or leave them. Either is fine.</p>
+        </section>
+
+        <section id="sec-context" data-section="sec-context">
+          <h3>1. The canvas and the context</h3>
+          <p>The page has one canvas element, 400 pixels wide and 300 tall. You never draw on the canvas directly. You draw through its 2D context, which the starter code already gets for you:</p>
+          <div class="example">
+<pre><code>const canvas = document.getElementById("stage");
+const ctx = canvas.getContext("2d");</code></pre>
+          </div>
+          <p><code>ctx</code> is the object you call for everything. Every rectangle, circle, and line is a call on <code>ctx</code>. Leave these two lines alone.</p>
+        </section>
+
+        <section id="sec-coords" data-section="sec-coords">
+          <h3>2. Coordinates</h3>
+          <p>The origin (0, 0) is the top left corner. x grows to the right, like you'd expect. y grows downward, which is the part that trips people up. The bottom edge of this canvas is y = 300 and the right edge is x = 400.</p>
+          <p>A rectangle is described by its top left corner, then its width and height:</p>
+          <div class="example">
+<pre><code>ctx.fillRect(x, y, width, height);</code></pre>
+          </div>
+          <p>So this draws a box whose top left corner is 50 pixels over and 200 pixels down, 100 wide and 80 tall:</p>
+          <div class="example">
+<pre><code>ctx.fillRect(50, 200, 100, 80);</code></pre>
+            <button class="try">Try it</button>
+          </div>
+          <p>Its bottom edge lands at y = 200 + 80 = 280. If you want a shape to sit on the bottom edge of the canvas, its y plus its height has to equal 300. Work backwards: a box 80 tall that touches the bottom needs y = 300 - 80 = 220.</p>
+        </section>
+
+        <section id="sec-state" data-section="sec-state">
+          <h3>3. Colors are settings, not arguments</h3>
+          <p>Notice that <code>fillRect</code> has no color argument. Color is a setting on <code>ctx</code> called <code>fillStyle</code>. Set it once, and every fill after that uses it until you change it.</p>
+          <div class="example">
+<pre><code>ctx.fillStyle = "seagreen";
+ctx.fillRect(20, 20, 80, 80);     // green
+ctx.fillRect(120, 20, 80, 80);    // also green, nobody changed the setting
+ctx.fillStyle = "gold";
+ctx.fillRect(220, 20, 80, 80);    // gold</code></pre>
+            <button class="try">Try it</button>
+          </div>
+          <p>Any CSS color works: names like <code>"tomato"</code>, hex like <code>"#3366ff"</code>, or <code>"rgb(0, 200, 0)"</code>.</p>
+          <p>Two more things about how the canvas keeps state:</p>
+          <ul>
+            <li>Shapes are painted in the order you call them. A later shape covers an earlier one where they overlap. If you draw a small shape and then a big one on top of it, the small one is gone.</li>
+            <li><code>strokeStyle</code> is the same idea for outlines, and <code>lineWidth</code> sets how thick outlines are. Both stay set until you change them.</li>
+          </ul>
+        </section>
+
+        <section id="sec-rects" data-section="sec-rects">
+          <h3>4. Rectangles</h3>
+          <p>Three calls, same arguments:</p>
+          <div class="example">
+<pre><code>ctx.fillRect(x, y, w, h);      // solid box
+ctx.strokeRect(x, y, w, h);    // outline only
+ctx.clearRect(x, y, w, h);     // erases that area back to blank</code></pre>
+          </div>
+          <p>Outline example:</p>
+          <div class="example">
+<pre><code>ctx.strokeStyle = "black";
+ctx.lineWidth = 4;
+ctx.strokeRect(100, 100, 120, 60);</code></pre>
+            <button class="try">Try it</button>
+          </div>
+        </section>
+
+        <section id="sec-paths" data-section="sec-paths">
+          <h3>5. Paths</h3>
+          <p>Rectangles get their own shortcut calls. Anything else (triangles, lines, circles) is a path. A path is a set of points you describe first and then paint with <code>fill()</code> or <code>stroke()</code>.</p>
+          <p>The pattern is always the same:</p>
+          <div class="example">
+<pre><code>ctx.beginPath();          // 1. start a fresh shape
+ctx.moveTo(200, 50);      // 2. put the pen down somewhere
+ctx.lineTo(300, 150);     // 3. draw to the next point
+ctx.lineTo(100, 150);     //    and the next
+ctx.closePath();          // 4. connect back to the start
+ctx.fill();               // 5. paint it, using fillStyle</code></pre>
+            <button class="try">Try it</button>
+          </div>
+          <p>That's a triangle. <code>stroke()</code> instead of <code>fill()</code> gives you the outline. You can call both.</p>
+          <p>The call people forget is <code>beginPath()</code>. Without it, the new points get added to whatever path you drew last, and <code>fill()</code> paints both shapes as one. If a shape comes out with a weird extra piece attached, or an earlier shape suddenly changes color, the fix is almost always a <code>beginPath()</code> in front of the new shape. The next section shows what that looks like.</p>
+        </section>
+
+        <section id="sec-circles" data-section="sec-circles">
+          <h3>6. Circles</h3>
+          <p>A circle is a path too, made with <code>arc</code>:</p>
+          <div class="example">
+<pre><code>ctx.beginPath();
+ctx.arc(x, y, radius, startAngle, endAngle);
+ctx.fill();</code></pre>
+          </div>
+          <p>Two differences from rectangles:</p>
+          <ul>
+            <li><code>x</code> and <code>y</code> are the center of the circle, not a corner.</li>
+            <li>The angles are in radians, not degrees. A full circle is <code>Math.PI * 2</code>. Half a circle is <code>Math.PI</code>. Writing <code>360</code> also gives you a full circle, but only by accident (360 radians wraps around the circle many times), so use <code>Math.PI * 2</code>.</li>
+          </ul>
+          <p>Full circle:</p>
+          <div class="example">
+<pre><code>ctx.beginPath();
+ctx.arc(200, 150, 50, 0, Math.PI * 2);
+ctx.fill();</code></pre>
+            <button class="try">Try it</button>
+          </div>
+          <p>Bottom half (angles run clockwise starting from 3 o'clock):</p>
+          <div class="example">
+<pre><code>ctx.beginPath();
+ctx.arc(200, 150, 50, 0, Math.PI);
+ctx.fill();</code></pre>
+            <button class="try">Try it</button>
+          </div>
+          <p>This is also where a missing <code>beginPath()</code> shows up most. Run this as is:</p>
+          <div class="example">
+<pre><code>ctx.fillStyle = "firebrick";
+ctx.beginPath();
+ctx.moveTo(60, 200);
+ctx.lineTo(160, 200);
+ctx.lineTo(110, 120);
+ctx.closePath();
+ctx.fill();
+
+ctx.fillStyle = "gold";
+ctx.arc(300, 100, 40, 0, Math.PI * 2);   // no beginPath first
+ctx.fill();</code></pre>
+            <button class="try">Try it</button>
+          </div>
+          <p>The circle grows a spike pointing at the triangle, and the triangle turns gold, because both shapes are still one path. Add <code>ctx.beginPath();</code> above the <code>arc</code> line and run it again.</p>
+        </section>
+
+        <section id="sec-rings" data-section="sec-rings">
+          <h3>7. Rings</h3>
+          <p>To draw a ring, put two circles in the same path and run the inner one backwards. The last argument of <code>arc</code> is <code>counterclockwise</code>. When the inner circle goes the opposite direction from the outer one, <code>fill()</code> treats the inside as a hole and leaves it empty:</p>
+          <div class="example">
+<pre><code>ctx.fillStyle = "crimson";
+ctx.beginPath();
+ctx.arc(200, 150, 100, 0, Math.PI * 2, false);   // outer edge
+ctx.arc(200, 150, 70, 0, Math.PI * 2, true);     // inner edge, backwards
+ctx.fill();</code></pre>
+            <button class="try">Try it</button>
+          </div>
+          <p>Whatever was behind the ring shows through the middle. If the middle fills in solid, the inner arc is missing the <code>true</code> at the end.</p>
+        </section>
+      </article>
+    </div>
+
+    <div id="tab-reference" class="tab-panel">
+      <article class="reference" id="ref" data-section="ref">
+        <h2 class="doc-title">Reference</h2>
+        <p>Canvas size: 400 wide, 300 tall. Origin is the top left. y grows downward.</p>
+        <table>
+          <thead><tr><th>Call</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>ctx.fillStyle = "color"</code></td><td>Sets the color for every fill that follows</td></tr>
+            <tr><td><code>ctx.strokeStyle = "color"</code></td><td>Sets the color for every outline that follows</td></tr>
+            <tr><td><code>ctx.lineWidth = n</code></td><td>Outline thickness in pixels</td></tr>
+            <tr><td><code>ctx.fillRect(x, y, w, h)</code></td><td>Solid rectangle. (x, y) is the top left corner</td></tr>
+            <tr><td><code>ctx.strokeRect(x, y, w, h)</code></td><td>Outlined rectangle</td></tr>
+            <tr><td><code>ctx.clearRect(x, y, w, h)</code></td><td>Erases an area</td></tr>
+            <tr><td><code>ctx.beginPath()</code></td><td>Starts a new shape. Call it before every path</td></tr>
+            <tr><td><code>ctx.moveTo(x, y)</code></td><td>Moves the pen without drawing</td></tr>
+            <tr><td><code>ctx.lineTo(x, y)</code></td><td>Adds a straight segment to (x, y)</td></tr>
+            <tr><td><code>ctx.arc(x, y, r, start, end, counterclockwise)</code></td><td>Adds a circle or arc centered at (x, y). Angles in radians. Full circle is 0 to Math.PI * 2</td></tr>
+            <tr><td><code>ctx.closePath()</code></td><td>Connects the last point back to the first</td></tr>
+            <tr><td><code>ctx.fill()</code></td><td>Paints the inside of the current path</td></tr>
+            <tr><td><code>ctx.stroke()</code></td><td>Paints the outline of the current path</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===================== WORK (right) ===================== -->
+  <section class="work" aria-label="Task">
+    <div class="task-head">
+      <h2 id="task-title">Task</h2>
+      <p id="task-intro" class="muted"></p>
+    </div>
+
+    <ol id="stages" class="stages"></ol>
+
+    <div class="toolbar">
+      <button id="btn-run" class="primary">Run</button>
+      <button id="btn-reset" class="ghost" title="Put the starter code back">Reset to starter</button>
+      <button id="btn-restore" class="ghost" hidden>Restore my code</button>
+      <span class="hint muted">Ctrl+Enter runs</span>
+    </div>
+
+    <div id="editor" class="editor" aria-label="Code editor"></div>
+
+    <div class="preview">
+      <canvas id="view" width="400" height="300" aria-label="Canvas output"></canvas>
+    </div>
+
+    <div id="output" class="output" aria-live="polite">
+      <div class="output-empty muted">Errors and console output show up here.</div>
+    </div>
+
+    <!-- Reserved for Group 2 (chat) and Group 3 (targeted feedback). Empty on purpose. -->
+    <aside id="assist" hidden></aside>
+  </section>
+
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

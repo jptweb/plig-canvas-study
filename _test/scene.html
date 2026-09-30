@@ -1,0 +1,13 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>scene self-test</title>
+<pre id="out">running...</pre>
+<iframe id="f" src="/?task=scene&debug=1" width="1400" height="900"></iframe>
+<script type="module">
+  const f = document.getElementById('f');
+  f.addEventListener('load', async () => {
+    const m = await import('./scene.js');
+    try { document.getElementById('out').textContent = 'RESULTS\n' + await m.run(f.contentWindow) + '\nDONE'; }
+    catch (e) { document.getElementById('out').textContent = 'HARNESS ERROR: ' + e.message; }
+  });
+</script>
