@@ -86,14 +86,14 @@ const ctx = canvas.getContext("2d");
   stages: [
     {
       id: 'ground', title: 'Ground', section: 'sec-coords',
-      text: 'Fill a green band across the bottom 100 pixels of the canvas.',
+      text: 'Draw the ground: a green rectangle as wide as the canvas and 100 pixels tall, sitting on the bottom edge.',
       check(a) {
         const g = findGround(a);
         if (!g) {
           const top = a.fillRects.find(r => r.x <= 2 && r.x + r.w >= 398 && r.y <= 2 && r.h >= 80 && r.h <= 120);
-          return no(top ? 'band is at the top: y grows downward, so y + height must equal 300' : 'no full-width rectangle with its bottom edge at 300');
+          return no(top ? 'rectangle is at the top: y grows downward, so y + height must equal 300' : 'no full-width rectangle with its bottom edge at 300');
         }
-        if (!greenish(px(a, 200, 290))) return no('band found but it is not green at (200, 290)');
+        if (!greenish(px(a, 200, 290))) return no('rectangle found but it is not green at (200, 290)');
         return ok();
       }
     },
