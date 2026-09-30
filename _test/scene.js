@@ -51,5 +51,7 @@ ctx.strokeRect(90, 115, 30, 30);
   r.push(await runCode('9 LOOP', `while (true) {}\n`));
   r.push(await runCode('10 FULL AFTER LOOP', full));
   r.push(await runCode('11 CONSOLE', `console.log("hello", 42);\n`));
+  for (let i = 0; i < 40 && !(w.__plig.goals && w.__plig.goals.length >= 5); i++) await wait(250);
+  r.push('goals self-check: ' + JSON.stringify(w.__plig.goals));
   return r.join('\n');
 }

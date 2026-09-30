@@ -4,6 +4,7 @@ import { TASKS, analyze } from './tasks.js';
 const params = new URLSearchParams(location.search);
 const task = TASKS[params.get('task')] || TASKS.scene;
 const DEBUG = params.get('debug') === '1';
+const SHOW_GOALS = params.get('goals') !== '0';   // ?goals=0 hides the per-stage goal thumbnails
 const t0 = performance.now();
 const KEY = `plig-${task.id}`;
 
@@ -39,7 +40,8 @@ for (const s of task.stages) {
   li.className = 'stage' + (s.stretch ? ' stretch' : '');
   li.id = `stage-${s.id}`;
   li.dataset.section = s.section;
-  li.innerHTML = `<span class="mark" aria-hidden="true"></span><div><div class="title">${s.title}</div><p class="text">${s.text}</p>${DEBUG ? '<p class="why"></p>' : ''}</div>`;
+  li.innerHTML = `<span class="mark" aria-hidden="true"></span><div><div class="title">${s.title}</div><p class="text">${s.text}</p>${DEBUG ? '<p class="why"></p>' : ''}</div>`
+    + (SHOW_GOALS ? `<figure class="goal"><canvas width="120" height="90" aria-label="Roughly what this stage should look like"></canvas><figcaption>Goal</figcaption></figure>` : '');
   stagesEl.appendChild(li);
   stageState[s.id] = false;
 }
@@ -108,14 +110,13 @@ function initEditor() {
 const view = document.getElementById('view');
 const viewCtx = view.getContext('2d');
 const outputEl = document.getElementById('output');
-let worker = null;
 let runCount = log.reduce((m, e) => Math.max(m, e.runId || 0), 0);   // keep ids unique across a reload
 const RUN_TIMEOUT = 4000;
 
 const SPY_METHODS = ['fillRect', 'strokeRect', 'clearRect', 'beginPath', 'closePath', 'moveTo', 'lineTo', 'arc', 'arcTo', 'rect', 'ellipse',
   'fill', 'stroke', 'fillText', 'strokeText', 'save', 'restore', 'translate', 'rotate', 'scale', 'quadraticCurveTo', 'bezierCurveTo', 'setLineDash'];
 
-function buildWorkerSource(code, runId) {
+function buildWorkerSource(code) {
   let prefix = `var __calls = [], __errors = [], __logs = [];
 var __canvas = new OffscreenCanvas(400, 300);
 var __ctx = __canvas.getContext('2d');
@@ -147,7 +148,7 @@ function __finish() {
   var pixels = null, bitmap = null;
   try { pixels = __ctx.getImageData(0, 0, 400, 300).data; } catch (e) {}
   try { bitmap = __canvas.transferToImageBitmap(); } catch (e) {}
-  self.postMessage({ type: 'run-result', runId: ${runId}, calls: __calls, errors: __errors, logs: __logs, pixels: pixels, bitmap: bitmap }, bitmap ? [bitmap] : []);
+  self.postMessage({ type: 'run-result', calls: __calls, errors: __errors, logs: __logs, pixels: pixels, bitmap: bitmap }, bitmap ? [bitmap] : []);
 }
 setTimeout(__finish, 0);   // runs after the student's script finishes or throws
 `;
@@ -156,36 +157,76 @@ setTimeout(__finish, 0);   // runs after the student's script finishes or throws
   return { src: prefix + code + '\n', offset };
 }
 
-function stopWorker() {
-  if (worker) { worker.w.terminate(); URL.revokeObjectURL(worker.url); clearTimeout(worker.timer); worker = null; }
+const TIMEOUT_MESSAGE = 'The code did not finish (an infinite loop?). Check for a loop that never ends.';
+
+// Run one script in a fresh worker. Resolves with { calls, errors, logs, pixels, bitmap, timeout }.
+// Returns { promise, cancel }; cancel() kills the worker and leaves the promise pending forever.
+function execute(code) {
+  const { src, offset } = buildWorkerSource(code);
+  const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+  const w = new Worker(url);
+  let settled = false, resolveFn = null, timer = null;
+  const teardown = () => { clearTimeout(timer); w.terminate(); URL.revokeObjectURL(url); };
+  const finish = result => { if (settled) return; settled = true; teardown(); resolveFn(result); };
+  const promise = new Promise(resolve => {
+    resolveFn = resolve;
+    timer = setTimeout(() => finish({ errors: [{ message: TIMEOUT_MESSAGE }], logs: [], calls: [], pixels: null, bitmap: null, timeout: true }), RUN_TIMEOUT);
+    w.onmessage = ev => { if (ev.data && ev.data.type === 'run-result') finish(ev.data); };
+    w.onerror = ev => {                 // syntax errors: the worker script never compiled
+      ev.preventDefault();
+      finish({ errors: [{ message: String(ev.message || 'Error').replace(/^Uncaught /, ''), line: ev.lineno ? ev.lineno - offset : null, col: ev.colno || null }], logs: [], calls: [], pixels: null, bitmap: null });
+    };
+  });
+  return { promise, cancel: () => { if (!settled) { settled = true; teardown(); } } };
 }
 
-function run() {
+let current = null;   // the in-flight student run, so a newer Run supersedes an older one
+async function run() {
   if (!editor) return;
   const code = editor.getValue();
   const id = ++runCount;
   event('run', { runId: id, code });
-  stopWorker();
-  const { src, offset } = buildWorkerSource(code, id);
-  const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
-  const w = new Worker(url);
-  const timer = setTimeout(() => {
-    if (!worker || worker.w !== w) return;
-    stopWorker();
-    finishRun(id, { errors: [{ message: 'The code did not finish (an infinite loop?). Check for a loop that never ends.' }], logs: [], calls: [], pixels: null, bitmap: null, timeout: true });
-  }, RUN_TIMEOUT);
-  worker = { w, url, timer, id };
-  w.onmessage = ev => {
-    if (!worker || worker.w !== w || !ev.data || ev.data.runId !== id) return;
-    stopWorker();
-    finishRun(id, ev.data);
-  };
-  w.onerror = ev => {                 // syntax errors: the worker script never compiled
-    if (!worker || worker.w !== w) return;
-    ev.preventDefault();
-    stopWorker();
-    finishRun(id, { errors: [{ message: String(ev.message || 'Error').replace(/^Uncaught /, ''), line: ev.lineno ? ev.lineno - offset : null, col: ev.colno || null }], logs: [], calls: [], pixels: null, bitmap: null });
-  };
+  if (current) current.handle.cancel();
+  const handle = execute(code);
+  current = { id, handle };
+  const result = await handle.promise;
+  if (!current || current.id !== id) return;
+  current = null;
+  finishRun(id, result);
+}
+
+// ---------- goal thumbnails + self-check ----------
+// Draws each stage's reference solution into its thumbnail and confirms the
+// reference passes that stage and every stage before it. Failures show up in
+// the console and, with ?debug=1, as a red outline on the thumbnail.
+async function renderGoals() {
+  window.__plig.goals = [];
+  for (let i = 0; i < task.stages.length; i++) {
+    const s = task.stages[i];
+    if (!s.solution) continue;
+    const li = document.getElementById(`stage-${s.id}`);
+    const canvas = li.querySelector('.goal canvas');
+    const result = await execute(task.starter + '\n' + s.solution).promise;
+    if (canvas && result.bitmap) {
+      const g = canvas.getContext('2d');
+      g.fillStyle = '#fff'; g.fillRect(0, 0, canvas.width, canvas.height);
+      g.drawImage(result.bitmap, 0, 0, canvas.width, canvas.height);
+    }
+    if (result.bitmap && result.bitmap.close) result.bitmap.close();
+    let ok = !result.errors.length, why = result.errors.map(e => e.message).join('; ');
+    if (ok) {
+      const a = analyze(result);
+      for (const prev of task.stages.slice(0, i + 1)) {
+        const r = prev.check(a);
+        if (!r.pass) { ok = false; why = `stage "${prev.id}": ${r.why}`; break; }
+      }
+    }
+    window.__plig.goals.push({ stage: s.id, ok, why });
+    if (!ok) {
+      console.warn(`[plig] reference solution for stage "${s.id}" does not pass: ${why}`);
+      if (DEBUG && canvas) { canvas.classList.add('bad'); canvas.title = why; }
+    }
+  }
 }
 
 function finishRun(id, result) {
@@ -293,4 +334,4 @@ document.getElementById('btn-log').addEventListener('click', () => {
 window.addEventListener('beforeunload', persist);
 
 // ---------- go ----------
-initEditor().then(e => { editor = e; run(); });
+initEditor().then(e => { editor = e; run(); if (SHOW_GOALS) renderGoals(); });

@@ -21,6 +21,7 @@ python3 -m http.server 8080
 | `?task=scene` | Variant A: ground, house, roof, sun (default) |
 | `?task=ring` | Variant B: background, disc, ring, bullseye |
 | `&debug=1` | Show each stage's pass/fail reason under the stage (proctor / pilot use only) |
+| `&goals=0` | Hide the per-stage goal thumbnails |
 
 ## Files
 
@@ -42,6 +43,12 @@ A worker can be terminated instantly, so an infinite loop costs four seconds, sh
 Syntax errors surface on the worker's `error` event, runtime errors on the worker's own `onerror`; both are shown with the line number relative to the editor.
 
 Editor content and the session log are mirrored to `sessionStorage`, so a reload in the same tab restores both. A new tab starts clean, which is what the next participant on a shared lab machine needs.
+
+## Goal thumbnails and the self-check
+
+Each stage card carries a small picture of roughly what the canvas should look like after that stage. The pictures are not image files: every stage in `tasks.js` has a `solution` (the complete reference code after that stage), and at load the page runs each one through the same sandbox and draws the result into the thumbnail. While it is at it, the page checks that each reference solution passes its own stage and all earlier ones. A failure means a checker and its stage text disagree; it goes to the console as a `[plig]` warning and, with `?debug=1`, shows as a red outline on the thumbnail. Results are also on `__plig.goals`.
+
+The reference code is visible to anyone who reads the page source. Fine for a proctored lab; if that ever matters, render the thumbnails to PNGs once and drop the `solution` strings.
 
 ## Session log
 

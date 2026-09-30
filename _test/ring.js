@@ -35,5 +35,7 @@ export async function run(w) {
   r.push(await runCode('8 RING2 SAME COLOR', bg + ring + ring2.replace('ctx.fillStyle = "navy";\n', '') + dot));
   r.push(await runCode('9 CROSS THIN', bg + ring + ring2 + dot + cross.replace('lineWidth = 3', 'lineWidth = 1')));
   r.push(await runCode('10 FULL', bg + ring + ring2 + dot + cross));
+  for (let i = 0; i < 40 && !(w.__plig.goals && w.__plig.goals.length >= 5); i++) await wait(250);
+  r.push('goals self-check: ' + JSON.stringify(w.__plig.goals));
   return r.join('\n');
 }

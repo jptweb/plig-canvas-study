@@ -2,6 +2,9 @@
 // A checkpoint gets the analyzed run (call log grouped into rects + path
 // segments, plus the canvas pixels) and returns { pass, why, notes }.
 // `why` is for the log and ?debug=1, never shown to participants by default.
+// `solution` is the complete reference code after that stage (starter lines
+// excluded). The page draws it into the stage's goal thumbnail and, at load,
+// checks that it passes its own stage. Not shown to participants as text.
 
 // ---------- shared helpers ----------
 
@@ -76,7 +79,7 @@ const findBody = a => a.fillRects.find(r => Math.abs(r.y + r.h - 200) <= 2 && r.
 const scene = {
   id: 'scene',
   name: 'Scene',
-  intro: 'Build the scene one stage at a time. The list below checks your work every time you press Run.',
+  intro: 'Build the scene one stage at a time. The list below checks your work every time you press Run. The small pictures show roughly what each stage should look like.',
   starter: `const canvas = document.getElementById("stage");   // 400 wide, 300 tall
 const ctx = canvas.getContext("2d");
 
@@ -87,6 +90,9 @@ const ctx = canvas.getContext("2d");
     {
       id: 'ground', title: 'Ground', section: 'sec-coords',
       text: 'Draw the ground: a green rectangle as wide as the canvas and 100 pixels tall, sitting on the bottom edge.',
+      solution: `ctx.fillStyle = "seagreen";
+ctx.fillRect(0, 200, 400, 100);
+`,
       check(a) {
         const g = findGround(a);
         if (!g) {
@@ -100,6 +106,11 @@ const ctx = canvas.getContext("2d");
     {
       id: 'body', title: 'House body', section: 'sec-coords',
       text: 'Draw the house body: a rectangle at least 100 wide and 80 tall, in any color that is not green, standing on the ground. Standing on the ground means its bottom edge is at y = 200.',
+      solution: `ctx.fillStyle = "seagreen";
+ctx.fillRect(0, 200, 400, 100);
+ctx.fillStyle = "peru";
+ctx.fillRect(80, 100, 140, 100);
+`,
       check(a) {
         const b = findBody(a);
         if (!b) {
@@ -116,6 +127,18 @@ const ctx = canvas.getContext("2d");
     {
       id: 'roof', title: 'Roof', section: 'sec-paths',
       text: "Add a triangle roof on top of the house body. Its two bottom corners sit on the body's top edge and its peak is above.",
+      solution: `ctx.fillStyle = "seagreen";
+ctx.fillRect(0, 200, 400, 100);
+ctx.fillStyle = "peru";
+ctx.fillRect(80, 100, 140, 100);
+ctx.fillStyle = "firebrick";
+ctx.beginPath();
+ctx.moveTo(70, 100);
+ctx.lineTo(230, 100);
+ctx.lineTo(150, 40);
+ctx.closePath();
+ctx.fill();
+`,
       check(a) {
         const b = findBody(a);
         if (!b) return no('needs the house body first');
@@ -138,6 +161,22 @@ const ctx = canvas.getContext("2d");
     {
       id: 'sun', title: 'Sun', section: 'sec-circles',
       text: 'Draw a sun: a full circle in the top right part of the canvas, radius at least 20, in a yellow or orange color.',
+      solution: `ctx.fillStyle = "seagreen";
+ctx.fillRect(0, 200, 400, 100);
+ctx.fillStyle = "peru";
+ctx.fillRect(80, 100, 140, 100);
+ctx.fillStyle = "firebrick";
+ctx.beginPath();
+ctx.moveTo(70, 100);
+ctx.lineTo(230, 100);
+ctx.lineTo(150, 40);
+ctx.closePath();
+ctx.fill();
+ctx.fillStyle = "gold";
+ctx.beginPath();
+ctx.arc(340, 60, 30, 0, Math.PI * 2);
+ctx.fill();
+`,
       check(a) {
         const fills = a.segments.filter(s => s.kind === 'fill');
         let found = null, glued = false;
@@ -162,6 +201,27 @@ const ctx = canvas.getContext("2d");
     {
       id: 'stretch', title: 'Stretch: door and window', section: 'sec-rects', stretch: true,
       text: 'Add a door (a filled rectangle inside the body that reaches down to the ground) and a window (an outlined square inside the body with lineWidth 3 or more).',
+      solution: `ctx.fillStyle = "seagreen";
+ctx.fillRect(0, 200, 400, 100);
+ctx.fillStyle = "peru";
+ctx.fillRect(80, 100, 140, 100);
+ctx.fillStyle = "firebrick";
+ctx.beginPath();
+ctx.moveTo(70, 100);
+ctx.lineTo(230, 100);
+ctx.lineTo(150, 40);
+ctx.closePath();
+ctx.fill();
+ctx.fillStyle = "gold";
+ctx.beginPath();
+ctx.arc(340, 60, 30, 0, Math.PI * 2);
+ctx.fill();
+ctx.fillStyle = "saddlebrown";
+ctx.fillRect(130, 140, 40, 60);
+ctx.strokeStyle = "black";
+ctx.lineWidth = 3;
+ctx.strokeRect(90, 115, 30, 30);
+`,
       check(a) {
         const b = findBody(a);
         if (!b) return no('needs the house body first');
@@ -188,7 +248,7 @@ const probe = (a, r) => px(a, C.x + r * 0.7071, C.y - r * 0.7071);
 const ring = {
   id: 'ring',
   name: 'Target',
-  intro: 'Build the target one stage at a time. The list below checks your work every time you press Run.',
+  intro: 'Build the target one stage at a time. The list below checks your work every time you press Run. The small pictures show roughly what each stage should look like.',
   starter: `const canvas = document.getElementById("stage");   // 400 wide, 300 tall
 const ctx = canvas.getContext("2d");
 
@@ -199,6 +259,9 @@ const ctx = canvas.getContext("2d");
     {
       id: 'background', title: 'Background', section: 'sec-coords',
       text: 'Fill the entire canvas with a light color, for example "lightblue".',
+      solution: `ctx.fillStyle = "lightblue";
+ctx.fillRect(0, 0, 400, 300);
+`,
       check(a) {
         if (!findBackground(a)) return no('no fillRect covering the whole canvas (0, 0, 400, 300)');
         const p = bgPixel(a);
@@ -210,6 +273,13 @@ const ctx = canvas.getContext("2d");
     {
       id: 'disc', title: 'Disc', section: 'sec-circles',
       text: 'Draw a filled circle centered at (200, 150) with radius 100, in a strong color.',
+      solution: `ctx.fillStyle = "lightblue";
+ctx.fillRect(0, 0, 400, 300);
+ctx.fillStyle = "crimson";
+ctx.beginPath();
+ctx.arc(200, 150, 100, 0, Math.PI * 2);
+ctx.fill();
+`,
       check(a) {
         const fills = a.segments.filter(s => s.kind === 'fill');
         const hit = fills.flatMap(s => arcs(s.ops)).find(c => Math.abs(c.cx - C.x) <= 3 && Math.abs(c.cy - C.y) <= 3 && c.r >= 95 && c.r <= 105 && fullCircle(c));
@@ -227,6 +297,14 @@ const ctx = canvas.getContext("2d");
     {
       id: 'ring', title: 'Ring', section: 'sec-rings',
       text: 'Turn the disc into a ring: the middle should show the background again, leaving a band 30 pixels wide (outer radius 100, inner radius 70).',
+      solution: `ctx.fillStyle = "lightblue";
+ctx.fillRect(0, 0, 400, 300);
+ctx.fillStyle = "crimson";
+ctx.beginPath();
+ctx.arc(200, 150, 100, 0, Math.PI * 2, false);
+ctx.arc(200, 150, 70, 0, Math.PI * 2, true);
+ctx.fill();
+`,
       check(a) {
         const bg = bgPixel(a);
         const gap = probe(a, 65);   // inside the hole, and still background after the bullseye stage
@@ -252,6 +330,23 @@ const ctx = canvas.getContext("2d");
     {
       id: 'bullseye', title: 'Bullseye', section: 'sec-state',
       text: 'Add a second ring inside the first, from radius 40 to 60, in a different color. Then a solid dot of radius 20 in a third color. The background should show between the rings.',
+      solution: `ctx.fillStyle = "lightblue";
+ctx.fillRect(0, 0, 400, 300);
+ctx.fillStyle = "crimson";
+ctx.beginPath();
+ctx.arc(200, 150, 100, 0, Math.PI * 2, false);
+ctx.arc(200, 150, 70, 0, Math.PI * 2, true);
+ctx.fill();
+ctx.fillStyle = "navy";
+ctx.beginPath();
+ctx.arc(200, 150, 60, 0, Math.PI * 2, false);
+ctx.arc(200, 150, 40, 0, Math.PI * 2, true);
+ctx.fill();
+ctx.fillStyle = "gold";
+ctx.beginPath();
+ctx.arc(200, 150, 20, 0, Math.PI * 2);
+ctx.fill();
+`,
       check(a) {
         const bg = bgPixel(a);
         const p85 = probe(a, 85), p65 = probe(a, 65), p50 = probe(a, 50), p30 = probe(a, 30), p0 = probe(a, 8);
@@ -268,6 +363,31 @@ const ctx = canvas.getContext("2d");
     {
       id: 'stretch', title: 'Stretch: crosshair', section: 'sec-paths', stretch: true,
       text: 'Draw a crosshair: two straight lines through the center, edge to edge, in a dark color, lineWidth 3.',
+      solution: `ctx.fillStyle = "lightblue";
+ctx.fillRect(0, 0, 400, 300);
+ctx.fillStyle = "crimson";
+ctx.beginPath();
+ctx.arc(200, 150, 100, 0, Math.PI * 2, false);
+ctx.arc(200, 150, 70, 0, Math.PI * 2, true);
+ctx.fill();
+ctx.fillStyle = "navy";
+ctx.beginPath();
+ctx.arc(200, 150, 60, 0, Math.PI * 2, false);
+ctx.arc(200, 150, 40, 0, Math.PI * 2, true);
+ctx.fill();
+ctx.fillStyle = "gold";
+ctx.beginPath();
+ctx.arc(200, 150, 20, 0, Math.PI * 2);
+ctx.fill();
+ctx.strokeStyle = "black";
+ctx.lineWidth = 3;
+ctx.beginPath();
+ctx.moveTo(0, 150);
+ctx.lineTo(400, 150);
+ctx.moveTo(200, 0);
+ctx.lineTo(200, 300);
+ctx.stroke();
+`,
       check(a) {
         const strokes = a.segments.filter(s => s.kind === 'stroke');
         const all = strokes.flatMap(lines);
