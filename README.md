@@ -42,6 +42,8 @@ A worker can be terminated instantly, so an infinite loop costs four seconds, sh
 
 Syntax errors surface on the worker's `error` event, runtime errors on the worker's own `onerror`; both are shown with the line number relative to the editor.
 
+There is no "load this example" button on purpose (team decision 2026-09-30): students type or paste the examples themselves, which is part of getting used to the editor.
+
 Editor content and the session log are mirrored to `sessionStorage`, so a reload in the same tab restores both. A new tab starts clean, which is what the next participant on a shared lab machine needs.
 
 ## Goal thumbnails and the self-check
@@ -52,7 +54,7 @@ The reference code is visible to anyone who reads the page source. Fine for a pr
 
 ## Session log
 
-Everything is logged in memory with a millisecond timestamp: load, tab switches, runs (with the code), run results (errors, stage summary), stage pass/fail transitions, Try it, reset, restore. "Download session log" saves it as JSON. Good enough for the timing pilot; a real study run will post it somewhere.
+Everything is logged in memory with a millisecond timestamp: load, tab switches, runs (with the code), run results (errors, stage summary), stage pass/fail transitions, reset. "Download session log" saves it as JSON. Good enough for the timing pilot; a real study run will post it somewhere.
 
 ## Reserved for later groups
 

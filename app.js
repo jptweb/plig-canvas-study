@@ -57,7 +57,6 @@ for (const tab of document.querySelectorAll('.tab')) {
 
 // ---------- editor (Monaco from cdnjs, textarea fallback) ----------
 let editor = null;       // { getValue, setValue }
-let stash = null;
 const editorEl = document.getElementById('editor');
 const initialCode = (saved && typeof saved.code === 'string') ? saved.code : task.starter;
 
@@ -293,33 +292,9 @@ document.getElementById('btn-run').addEventListener('click', run);
 document.getElementById('btn-reset').addEventListener('click', () => {
   if (!editor) return;
   editor.setValue(task.starter);
-  document.getElementById('btn-restore').hidden = true;
-  stash = null;
   event('reset');
   run();
 });
-
-document.getElementById('btn-restore').addEventListener('click', () => {
-  if (!editor || stash === null) return;
-  editor.setValue(stash);
-  stash = null;
-  document.getElementById('btn-restore').hidden = true;
-  event('restore');
-  run();
-});
-
-for (const btn of document.querySelectorAll('.example .try')) {
-  btn.addEventListener('click', () => {
-    if (!editor) return;
-    const code = btn.parentElement.querySelector('code').textContent;
-    const section = btn.closest('section')?.id || '';
-    const current = editor.getValue();
-    if (current !== task.starter) { stash = current; document.getElementById('btn-restore').hidden = false; }
-    editor.setValue(task.starter + '\n' + code + '\n');
-    event('tryit', { section });
-    run();
-  });
-}
 
 document.getElementById('btn-log').addEventListener('click', () => {
   persist();

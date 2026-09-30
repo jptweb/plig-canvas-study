@@ -37,7 +37,6 @@
 <pre><code>ctx.fillStyle = "steelblue";
 ctx.fillRect(20, 20, 100, 60);
 ctx.fillRect(150, 100, 60, 60);</code></pre>
-            <button class="try">Try it</button>
           </div>
           <p>You should see two blue rectangles. If you get an error instead, check for a missing quote or parenthesis. The error panel under the canvas tells you the line number. Delete the three lines when you're done, or leave them. Either is fine.</p>
         </section>
@@ -62,7 +61,6 @@ const ctx = canvas.getContext("2d");</code></pre>
           <p>So this draws a box whose top left corner is 50 pixels over and 200 pixels down, 100 wide and 80 tall:</p>
           <div class="example">
 <pre><code>ctx.fillRect(50, 200, 100, 80);</code></pre>
-            <button class="try">Try it</button>
           </div>
           <p>Its bottom edge lands at y = 200 + 80 = 280. If you want a shape to sit on the bottom edge of the canvas, its y plus its height has to equal 300. Work backwards: a box 80 tall that touches the bottom needs y = 300 - 80 = 220.</p>
         </section>
@@ -76,7 +74,6 @@ ctx.fillRect(20, 20, 80, 80);     // green
 ctx.fillRect(120, 20, 80, 80);    // also green, nobody changed the setting
 ctx.fillStyle = "gold";
 ctx.fillRect(220, 20, 80, 80);    // gold</code></pre>
-            <button class="try">Try it</button>
           </div>
           <p>Any CSS color works: names like <code>"tomato"</code>, hex like <code>"#3366ff"</code>, or <code>"rgb(0, 200, 0)"</code>.</p>
           <p>Two more things about how the canvas keeps state:</p>
@@ -99,7 +96,6 @@ ctx.clearRect(x, y, w, h);     // erases that area back to blank</code></pre>
 <pre><code>ctx.strokeStyle = "black";
 ctx.lineWidth = 4;
 ctx.strokeRect(100, 100, 120, 60);</code></pre>
-            <button class="try">Try it</button>
           </div>
         </section>
 
@@ -114,7 +110,6 @@ ctx.lineTo(300, 150);     // 3. draw to the next point
 ctx.lineTo(100, 150);     //    and the next
 ctx.closePath();          // 4. connect back to the start
 ctx.fill();               // 5. paint it, using fillStyle</code></pre>
-            <button class="try">Try it</button>
           </div>
           <p>That's a triangle. <code>stroke()</code> instead of <code>fill()</code> gives you the outline. You can call both.</p>
           <p>The call people forget is <code>beginPath()</code>. Without it, the new points get added to whatever path you drew last, and <code>fill()</code> paints both shapes as one. If a shape comes out with a weird extra piece attached, or an earlier shape suddenly changes color, the fix is almost always a <code>beginPath()</code> in front of the new shape. The next section shows what that looks like.</p>
@@ -138,14 +133,12 @@ ctx.fill();</code></pre>
 <pre><code>ctx.beginPath();
 ctx.arc(200, 150, 50, 0, Math.PI * 2);
 ctx.fill();</code></pre>
-            <button class="try">Try it</button>
           </div>
           <p>Bottom half (angles run clockwise starting from 3 o'clock):</p>
           <div class="example">
 <pre><code>ctx.beginPath();
 ctx.arc(200, 150, 50, 0, Math.PI);
 ctx.fill();</code></pre>
-            <button class="try">Try it</button>
           </div>
           <p>This is also where a missing <code>beginPath()</code> shows up most. Run this as is:</p>
           <div class="example">
@@ -160,7 +153,6 @@ ctx.fill();
 ctx.fillStyle = "gold";
 ctx.arc(300, 100, 40, 0, Math.PI * 2);   // no beginPath first
 ctx.fill();</code></pre>
-            <button class="try">Try it</button>
           </div>
           <p>The circle grows a spike pointing at the triangle, and the triangle turns gold, because both shapes are still one path. Add <code>ctx.beginPath();</code> above the <code>arc</code> line and run it again.</p>
         </section>
@@ -174,7 +166,6 @@ ctx.beginPath();
 ctx.arc(200, 150, 100, 0, Math.PI * 2, false);   // outer edge
 ctx.arc(200, 150, 70, 0, Math.PI * 2, true);     // inner edge, backwards
 ctx.fill();</code></pre>
-            <button class="try">Try it</button>
           </div>
           <p>Whatever was behind the ring shows through the middle. If the middle fills in solid, the inner arc is missing the <code>true</code> at the end.</p>
         </section>
@@ -219,7 +210,6 @@ ctx.fill();</code></pre>
     <div class="toolbar">
       <button id="btn-run" class="primary">Run</button>
       <button id="btn-reset" class="ghost" title="Put the starter code back">Reset to starter</button>
-      <button id="btn-restore" class="ghost" hidden>Restore my code</button>
       <span class="hint muted">Ctrl+Enter runs</span>
     </div>
 
